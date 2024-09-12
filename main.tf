@@ -86,6 +86,19 @@ resource "azurerm_lb_nat_pool" "lbnatpool" {
   resource_group_name = azurerm_resource_group.Azure_resource_group.name
 }
 
+# Load Balancer Rule to Forward Traffic
+resource "azurerm_lb_rule" "example_lb_rule" {
+  name                           = "example-lb-rule"
+  #resource_group_name            = azurerm_resource_group.Azure_resource_group.name
+  loadbalancer_id                = azurerm_lb.lb.id
+  protocol                       = "Tcp"
+  frontend_port                  = 80
+  backend_port                   = 80
+  frontend_ip_configuration_name = azurerm_lb.lb.frontend_ip_configuration[0].name
+  ##backend_address_pool_id        = azurerm_lb_backend_address_pool.bpepool.id
+  #probe_id                       = azurerm_lb_probe.example_lb_probe.id
+}
+
 
 resource "azurerm_virtual_machine_scale_set" "vmscaleset" {
   name                = "vmscaleset"
@@ -171,6 +184,20 @@ resource "azurerm_virtual_machine_scale_set" "vmscaleset" {
   tags = {
     environment = "staging"
   }
+}
+
+resource "azurerm_dns_zone" "pghub" {
+  name                = var.domain_name
+  resource_group_name = azurerm_resource_group.Azure_resource_group.name
+}
+
+# A Record in the DNS Zone
+resource "azurerm_dns_a_record" "example_a_record" {
+  name                = "www"  # This will create www.example.com
+  zone_name           = azurerm_dns_zone.pghub.name
+  resource_group_name = azurerm_resource_group.Azure_resource_group.name
+  ttl                 = 300  # Time-to-live for the DNS record
+  records             = [azurerm_public_ip.lb_pip.ip_address]  # Replace with the actual IP address
 }
 
 
