@@ -8,7 +8,7 @@ terraform {
 }
 
 # provider "azurerm" {
-#   # Configuration options
+
 # }
 # terraform {
 #   required_providers {
