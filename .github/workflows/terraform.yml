@@ -44,10 +44,17 @@ name: 'Terraform'
 on:
   push:
     branches: [ "master" ]
-  pull_request:
 
-permissions:
-  contents: read
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Choose the Terraform action to perform (apply/destroy)'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy  
 
 jobs:
   terraform:
@@ -86,5 +93,11 @@ jobs:
       # On push to "master", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/"master"' && github.event_name == 'push'
-      run: terraform apply -auto-approve -input=false
+      #if: github.ref == 'refs/heads/"master"' && github.event_name == 'push'
+      if: ${{ github.event_name == 'push' || github.event.inputs.action == 'apply' }}
+      #run: terraform apply -auto-approve -input=false
+      run: terraform apply -auto-approve
+      # Step 5: Terraform Destroy
+    - name: Terraform Destroy
+      if: ${{ github.event.inputs.action == 'destroy' }}
+      run: terraform destroy -auto-approve
